@@ -48,6 +48,10 @@ backend-install:
 	@echo ">>> Installing backend dependencies..."
 	@pip install -r backend/requirements.txt
 
+backend-create-test-db:
+	@echo ">>> Ensuring test database exists..."
+	@cd backend && python -m scripts.create_test_db
+
 backend-test:
 	@echo ">>> Running backend tests..."
 	@cd backend && python -m pytest
