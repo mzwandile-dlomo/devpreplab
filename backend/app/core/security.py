@@ -10,7 +10,12 @@ from app.core.config import settings
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 ALGORITHM = "HS256"
+MAX_BCRYPT_LENGTH = 72
 
+def truncate_password(password: str) -> str:
+    # Truncate to 72 bytes (not characters—may need encoding if non-ASCII)
+    encoded = password.encode('utf-8')
+    return encoded[:MAX_BCRYPT_LENGTH].decode('utf-8', 'ignore')
 
 def create_access_token(
     subject: Union[str, Any], expires_delta: timedelta = None
@@ -27,12 +32,8 @@ def create_access_token(
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
+    return pwd_context.verify(truncate_password(plain_password), hashed_password)
 
 
 def get_password_hash(password: str) -> str:
-    # Bcrypt has a maximum password length of 72 bytes
-    # Truncate the password string if needed
-    if len(password.encode('utf-8')) > 72:
-        password = password.encode('utf-8')[:72].decode('utf-8', errors='ignore')
-    return pwd_context.hash(password)
+    return pwd_context.hash(truncate_password(password))
