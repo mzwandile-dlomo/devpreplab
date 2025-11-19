@@ -49,7 +49,9 @@ class Settings(BaseSettings):
         print(f"DEBUG: Constructed TEST_DATABASE_URL: {test_db_url}")
         return test_db_url
 
-    SECRET_KEY: str
+    # WARNING: This default SECRET_KEY is only for local development and tests.
+    # Always override it in production via the environment or a .env file.
+    SECRET_KEY: str = "dev-prep-lab-insecure-test-key-change-me"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
 
