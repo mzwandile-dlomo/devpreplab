@@ -1,20 +1,21 @@
 
 from datetime import datetime, timedelta
 from typing import Any, Union
+import bcrypt
 
 from jose import jwt
-from passlib.context import CryptContext
+# from passlib.context import CryptContext
 
 from app.core.config import settings
 
 # Configure bcrypt so that it never raises on >72-byte passwords.
 # We perform explicit truncation ourselves in truncate_password, but this
 # ensures other call sites using this context also behave safely in CI.
-pwd_context = CryptContext(
-    schemes=["bcrypt"],
-    deprecated="auto",
-    bcrypt__ident="2b",
-)
+# pwd_context = CryptContext(
+#     schemes=["bcrypt"],
+#     deprecated="auto",
+#     bcrypt__ident="2b",
+# )
 
 ALGORITHM = "HS256"
 MAX_BCRYPT_LENGTH = 72
@@ -38,9 +39,22 @@ def create_access_token(
     return encoded_jwt
 
 
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(truncate_password(plain_password), hashed_password)
+# def verify_password(plain_password: str, hashed_password: str) -> bool:
+#     return pwd_context.verify(truncate_password(plain_password), hashed_password)
 
+
+# def get_password_hash(password: str) -> str:
+#     return pwd_context.hash(truncate_password(password))
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    return bcrypt.checkpw(
+        truncate_password(plain_password).encode('utf-8'),
+        hashed_password.encode('utf-8')
+    )
 
 def get_password_hash(password: str) -> str:
-    return pwd_context.hash(truncate_password(password))
+    return bcrypt.hashpw(
+        truncate_password(password).encode('utf-8'),
+        bcrypt.gensalt()
+    ).decode('utf-8')
+
