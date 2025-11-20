@@ -13,7 +13,7 @@ from app.core.config import settings
 pwd_context = CryptContext(
     schemes=["bcrypt"],
     deprecated="auto",
-    bcrypt__truncate_error=False,
+    bcrypt__ident="2b",
 )
 
 ALGORITHM = "HS256"
