@@ -7,7 +7,14 @@ from passlib.context import CryptContext
 
 from app.core.config import settings
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# Configure bcrypt so that it never raises on >72-byte passwords.
+# We perform explicit truncation ourselves in truncate_password, but this
+# ensures other call sites using this context also behave safely in CI.
+pwd_context = CryptContext(
+    schemes=["bcrypt"],
+    deprecated="auto",
+    bcrypt__truncate_error=False,
+)
 
 ALGORITHM = "HS256"
 MAX_BCRYPT_LENGTH = 72
