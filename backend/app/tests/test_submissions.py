@@ -90,7 +90,7 @@ def test_create_submission_passes_when_output_matches(monkeypatch, client: TestC
         )
 
     monkeypatch.setattr(
-        "app.utils.execution.run_python_code_against_input",
+        "app.api.endpoints.submissions.run_python_code_against_input",
         fake_run_python_code_against_input,
     )
 
@@ -132,7 +132,7 @@ def test_create_submission_fails_when_output_differs(monkeypatch, client: TestCl
         )
 
     monkeypatch.setattr(
-        "app.utils.execution.run_python_code_against_input",
+        "app.api.endpoints.submissions.run_python_code_against_input",
         fake_run_python_code_against_input,
     )
 
