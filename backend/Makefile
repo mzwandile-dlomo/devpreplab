@@ -1,6 +1,16 @@
 # Backend Makefile for DevPrepLab
 
-VENV_PREFIX = . .venv/bin/activate &&
+# Check if we're in a virtual environment or CI environment
+# If .venv exists, use it; otherwise run commands directly (for CI or system Python)
+ifdef VIRTUAL_ENV
+    VENV_PREFIX =
+else ifdef CI
+    VENV_PREFIX =
+else ifeq ($(shell test -d .venv && echo yes),yes)
+    VENV_PREFIX = . .venv/bin/activate &&
+else
+    VENV_PREFIX =
+endif
 
 .PHONY: help install run test create-test-db seed-problems db-migrate db-revision db-downgrade build-execution-image clean-db
 
