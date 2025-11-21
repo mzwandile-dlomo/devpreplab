@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from app import schemas, models
 from app.core.database import get_db
-from app.core.security import create_access_token, verify_password, get_password_hash
+from app.core.security import create_access_token, verify_password, get_password_hash, get_current_user
 
 router = APIRouter()
 
@@ -39,3 +39,9 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
         )
     access_token = create_access_token(subject=user.id)
     return {"access_token": access_token, "token_type": "bearer"}
+
+
+@router.get("/me", response_model=schemas.UserPublic)
+def read_me(current_user: models.User = Depends(get_current_user)):
+    """Return the currently authenticated user based on the Bearer token."""
+    return current_user

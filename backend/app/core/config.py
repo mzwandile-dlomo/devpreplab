@@ -10,14 +10,15 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = "dev"
     TESTING: bool = False
 
-    POSTGRES_USER: str
-    POSTGRES_PASSWORD: str
-    POSTGRES_SERVER: str
+    POSTGRES_USER: str = ""
+    POSTGRES_PASSWORD: str = ""
+    POSTGRES_SERVER: str = ""
     POSTGRES_PORT: int = 5432
-    POSTGRES_DB: str
+    POSTGRES_DB: str = ""
     POSTGRES_DB_TEST: str = "test_devpreplab"
 
     DATABASE_URL: Optional[str] = None
+    REDIS_URL: Optional[str] = None
 
     TEST_DATABASE_URL: Optional[str] = None
 
@@ -43,11 +44,7 @@ class Settings(BaseSettings):
     def assemble_test_db_connection(cls, v: Optional[str], values: dict[str, any]) -> any:
         if isinstance(v, str):
             return v
-        print(f"DEBUG: POSTGRES_USER in validator: {values.get('POSTGRES_USER')}")
-        print(f"DEBUG: POSTGRES_PASSWORD in validator: {values.get('POSTGRES_PASSWORD')}")
-        test_db_url = f"postgresql://{values.get('POSTGRES_USER')}:{values.get('POSTGRES_PASSWORD')}@{values.get('POSTGRES_SERVER')}:{values.get('POSTGRES_PORT')}/test_devpreplab"
-        print(f"DEBUG: Constructed TEST_DATABASE_URL: {test_db_url}")
-        return test_db_url
+        return f"postgresql://{values.get('POSTGRES_USER')}:{values.get('POSTGRES_PASSWORD')}@{values.get('POSTGRES_SERVER')}:{values.get('POSTGRES_PORT')}/test_devpreplab"
 
     # WARNING: This default SECRET_KEY is only for local development and tests.
     # Always override it in production via the environment or a .env file.
@@ -59,7 +56,4 @@ class Settings(BaseSettings):
         env_file = ".env"
         env_file_encoding = "utf-8"
 
-print(f"DEBUG: Before Settings() - os.environ.get('POSTGRES_USER'): {os.environ.get('POSTGRES_USER')}")
-print(f"DEBUG: Before Settings() - os.environ.get('POSTGRES_PASSWORD'): {os.environ.get('POSTGRES_PASSWORD')}")
 settings = Settings()
-print(f"DEBUG: After Settings() - settings.TEST_DATABASE_URL: {settings.TEST_DATABASE_URL}")

@@ -3,22 +3,19 @@ from datetime import datetime, timedelta
 from typing import Any, Union
 import bcrypt
 
-from jose import jwt
-# from passlib.context import CryptContext
+from fastapi import Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer
+from jose import JWTError, jwt
+from sqlalchemy.orm import Session
 
 from app.core.config import settings
-
-# Configure bcrypt so that it never raises on >72-byte passwords.
-# We perform explicit truncation ourselves in truncate_password, but this
-# ensures other call sites using this context also behave safely in CI.
-# pwd_context = CryptContext(
-#     schemes=["bcrypt"],
-#     deprecated="auto",
-#     bcrypt__ident="2b",
-# )
+from app.core.database import get_db
+from app import models
 
 ALGORITHM = "HS256"
 MAX_BCRYPT_LENGTH = 72
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
 def truncate_password(password: str) -> str:
     # Truncate to 72 bytes (not characters—may need encoding if non-ASCII)
@@ -39,22 +36,43 @@ def create_access_token(
     return encoded_jwt
 
 
-# def verify_password(plain_password: str, hashed_password: str) -> bool:
-#     return pwd_context.verify(truncate_password(plain_password), hashed_password)
-
-
-# def get_password_hash(password: str) -> str:
-#     return pwd_context.hash(truncate_password(password))
-
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     return bcrypt.checkpw(
-        truncate_password(plain_password).encode('utf-8'),
-        hashed_password.encode('utf-8')
+        truncate_password(plain_password).encode("utf-8"),
+        hashed_password.encode("utf-8"),
     )
+
 
 def get_password_hash(password: str) -> str:
     return bcrypt.hashpw(
-        truncate_password(password).encode('utf-8'),
-        bcrypt.gensalt()
-    ).decode('utf-8')
+        truncate_password(password).encode("utf-8"),
+        bcrypt.gensalt(),
+    ).decode("utf-8")
+
+
+def get_current_user(
+    db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)
+) -> models.User:
+    """Decode JWT Bearer token and return the authenticated user.
+
+    Raises 401 if the token is missing/invalid or the user no longer exists.
+    """
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+
+    try:
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
+        sub = payload.get("sub")
+        if sub is None:
+            raise credentials_exception
+    except JWTError:
+        raise credentials_exception
+
+    user = db.query(models.User).filter(models.User.id == sub).first()
+    if user is None:
+        raise credentials_exception
+    return user
 

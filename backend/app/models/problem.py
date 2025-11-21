@@ -15,4 +15,5 @@ class Problem(Base):
     category = Column(String, nullable=False)
     time_limit = Column(Integer, nullable=False)  # in seconds
     memory_limit = Column(Integer, nullable=False)  # in MB
+    starter_code = Column(Text, nullable=True)  # Python starter code template
     created_at = Column(DateTime(timezone=True), server_default=func.now())

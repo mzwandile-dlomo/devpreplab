@@ -1,32 +1,38 @@
 # Makefile for DevPrepLab
 
-.PHONY: help install clean backend-install backend-run backend-db-migrate frontend-install frontend-run frontend-build frontend-lint docker-up docker-down docker-build
+.PHONY: help install clean \
+	backend-install backend-run backend-db-migrate backend-test backend-create-test-db \
+	frontend-install frontend-run frontend-build frontend-lint \
+	docker-up docker-down docker-build backend-up frontend-up db-up
 
 help:
 	@echo "Makefile for DevPrepLab"
 	@echo ""
 	@echo "Usage:"
-	@echo "  make help                  Show this help message"
-	@echo "  make install               Install all dependencies for backend and frontend"
-	@echo "  make clean                 Remove generated files"
+	@echo "  make help                      Show this help message"
+	@echo "  make install                   Install all dependencies for backend and frontend"
+	@echo "  make clean                     Remove generated files"
 	@echo ""
 	@echo "Backend:"
-	@echo "  make backend-install       Install backend dependencies"
-	@echo "  make backend-run           Run the backend server"
-	@echo "  make backend-db-migrate    Run database migrations"
+	@echo "  make backend-install           Install backend dependencies"
+	@echo "  make backend-run               Run the backend server"
+	@echo "  make backend-db-migrate        Run database migrations"
+	@echo "  make backend-test              Run backend tests"
+	@echo "  make backend-create-test-db    Ensure test database exists"
 	@echo ""
 	@echo "Frontend:"
-	@echo "  make frontend-install      Install frontend dependencies"
-	@echo "  make frontend-run          Run the frontend dev server"
-	@echo "  make frontend-build        Build the frontend application"
-	@echo "  make frontend-lint         Lint the frontend code"
+	@echo "  make frontend-install          Install frontend dependencies"
+	@echo "  make frontend-run              Run the frontend dev server"
+	@echo "  make frontend-build            Build the frontend application"
+	@echo "  make frontend-lint             Lint the frontend code"
 	@echo ""
 	@echo "Docker:"
-	@echo "  make docker-up             Start all services with Docker Compose"
-	@echo "  make backend-up            Start only the backend service with Docker Compose"
-	@echo "  make frontend-up           Start only the frontend service with Docker Compose"
-	@echo "  make docker-down           Stop the application with Docker Compose"
-	@echo "  make docker-build          Build the Docker images"
+	@echo "  make docker-up                 Start all services with Docker Compose"
+	@echo "  make backend-up                Start only the backend service with Docker Compose"
+	@echo "  make frontend-up               Start only the frontend service with Docker Compose"
+	@echo "  make db-up                     Start only the database service with Docker Compose"
+	@echo "  make docker-down               Stop the application with Docker Compose"
+	@echo "  make docker-build              Build the Docker images"
 
 # ==============================================================================
 # General Commands
@@ -41,55 +47,56 @@ clean:
 	@rm -rf frontend/node_modules
 
 # ==============================================================================
-# Backend Commands
+# Backend Commands (delegating to backend/Makefile)
 # ==============================================================================
 
 backend-install:
 	@echo ">>> Installing backend dependencies..."
-	@pip install -r backend/requirements.txt
+	@$(MAKE) -C backend install
 
 backend-create-test-db:
 	@echo ">>> Ensuring test database exists..."
-	@cd backend && python -m scripts.create_test_db
+	@$(MAKE) -C backend create-test-db
 
 backend-test:
 	@echo ">>> Running backend tests..."
-	@cd backend && python -m pytest
+	@$(MAKE) -C backend test
 
 backend-run:
 	@echo ">>> Starting backend server..."
-	@uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload --app-dir backend/app
+	@$(MAKE) -C backend run
 
 backend-db-migrate:
 	@echo ">>> Running database migrations..."
-	@alembic -c backend/alembic.ini upgrade head
+	@$(MAKE) -C backend db-migrate
 
 # ==============================================================================
-# Frontend Commands
+# Frontend Commands (delegating to frontend/Makefile)
 # ==============================================================================
 
 frontend-install:
 	@echo ">>> Installing frontend dependencies..."
-	@npm install --prefix frontend
+	@$(MAKE) -C frontend install
 
 frontend-run:
 	@echo ">>> Starting frontend dev server..."
-	@npm run dev --prefix frontend
+	@$(MAKE) -C frontend dev
 
 frontend-build:
 	@echo ">>> Building frontend application..."
-	@npm run build --prefix frontend
+	@$(MAKE) -C frontend build
 
 frontend-lint:
 	@echo ">>> Linting frontend code..."
-	@npm run lint --prefix frontend
+	@$(MAKE) -C frontend lint
 
 # ==============================================================================
 # Docker Commands
 # ==============================================================================
 
-up: ## Start all services in detached mode
-	docker-compose up -d
+docker-up: ## Start all services in detached mode
+	@echo ">>> Starting all services with Docker Compose..."
+	@docker-compose up -d
 
 .PHONY: backend-up
 backend-up: ## Start only the backend service in detached mode
@@ -98,6 +105,10 @@ backend-up: ## Start only the backend service in detached mode
 .PHONY: frontend-up
 frontend-up: ## Start only the frontend service in detached mode
 	docker-compose up -d frontend
+
+.PHONY: db-up
+db-up: ## Start only the database service in detached mode
+	docker-compose up -d postgres
 
 docker-down:
 	@echo ">>> Stopping application with Docker Compose..."

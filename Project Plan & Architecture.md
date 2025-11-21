@@ -208,6 +208,29 @@ user_statistics
 - `GET /api/stats/leaderboard` - Get global leaderboard
 - `GET /api/stats/progress/:userId` - Get detailed progress data
 
+## Session Management
+- **Auth model**: JWT access + refresh tokens
+- **Session store**: Redis, keyed by `session:{user_id}:{session_id}` with expiry
+- **Login**: create a new session record, issue access + refresh tokens
+- **Refresh**: rotate refresh tokens and update the Redis session record
+- **Logout**: delete session record(s) in Redis to immediately revoke tokens
+- **Revocation**: support user-wide and single-session revocation (e.g. log out from all devices)
+
+## Caching Strategy
+- **Store**: Redis cluster used for both caching and rate limiting
+- **What we cache**:
+  - Hot problem listings and problem details
+  - User statistics aggregates and leaderboard pages
+  - Rate limiting counters for auth and submission endpoints
+- **Cache keys**:
+  - Problems: `problem:{id}`, `problems:list:{filters_hash}`
+  - Stats: `stats:user:{user_id}`, `leaderboard:global`, `stats:progress:{user_id}`
+  - Rate limits: `rl:{scope}:{user_id}` (e.g. `rl:submit_code`, `rl:login`)
+- **TTL & invalidation**:
+  - Problem data: long TTL (e.g. 10–30 minutes), invalidated on problem update
+  - Stats/leaderboard: short TTL (e.g. 30–60 seconds) to keep UX fresh
+  - Rate limits: TTL equal to window size (e.g. 60 seconds for per-minute limits)
+
 ---
 
 ## Code Execution Flow
@@ -255,7 +278,9 @@ user_statistics
 - Set up Next.js project with TypeScript
 - Create FastAPI backend structure
 - Configure PostgreSQL database
-- Implement basic authentication
+- Set up Redis and connection configuration
+- Implement basic authentication (JWT access + refresh tokens)
+- Implement session management with Redis-backed session store (login, logout, token invalidation)
 - Create database models and migrations
 
 ### Phase 2: Problem System (Week 3)
@@ -264,29 +289,34 @@ user_statistics
 - Implement random problem selection
 - Design problem display UI
 
-### Phase 3: Code Execution (Week 4)
+### Phase 3: Code Execution & Rate Limiting (Week 4)
 - Set up Docker sandbox environment
 - Implement code runner for Python
 - Add timeout and resource limits
 - Create submission validation logic
+- Implement Redis-backed rate limiting for auth and submission endpoints
 
 ### Phase 4: Frontend Development (Week 5)
 - Integrate Monaco Editor
 - Build timer component
 - Create submission flow
 - Design results display
+- Wire basic client-side auth handling to use JWT/session model for protected views
 
-### Phase 5: Statistics & Analytics (Week 6)
-- Implement stats tracking
+### Phase 5: Statistics, Analytics & Caching (Week 6)
+- Implement stats tracking (update `user_statistics` on each submission)
+- Expose statistics API endpoints for user stats, leaderboard, and progress
 - Create dashboard visualizations
 - Build progress charts
 - Add leaderboard
+- Add Redis caching for expensive statistics and leaderboard queries
 
-### Phase 6: Polish & Deploy (Week 7)
+### Phase 6: Polish, Performance & Deploy (Week 7)
 - Add multiple language support
-- Implement error handling
-- Performance optimization
-- Write documentation
+- Implement error handling and structured logging
+- Performance optimization (DB query tuning, cache tuning, connection pooling)
+- Security review for session management and rate limiting
+- Write documentation (including session and caching behaviour)
 - Deploy to production
 
 ---
