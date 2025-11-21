@@ -11,11 +11,13 @@ app = FastAPI(
     openapi_url="/api/v1/openapi.json",
 )
 
-# Allow frontend running on localhost:3000 to call the API
+# Allow frontend running on localhost:3000 and Vercel deployments to call the API
 origins = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
-    "https://devpreplab.onrender.com"
+    "https://devpreplab.onrender.com",
+    "https://dev-prep-rd9qdcs7k-mzwandile-dlomos-projects.vercel.app",
+    "https://dev-prep-lab-git-main-mzwandile-dlomos-projects.vercel.app"
 ]
 
 app.add_middleware(

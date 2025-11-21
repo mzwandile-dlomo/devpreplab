@@ -2,6 +2,13 @@
 
 A coding practice platform for technical interview preparation with secure code execution and real-time feedback.
 
+## Live Demo
+
+- **Frontend**: [https://dev-prep-rd9qdcs7k-mzwandile-dlomos-projects.vercel.app](https://dev-prep-rd9qdcs7k-mzwandile-dlomos-projects.vercel.app)
+- **Backend API**: Check the frontend app for API endpoint details
+
+Try the live application to practice coding problems with real-time feedback!
+
 ## Tech Stack
 
 ### Backend
