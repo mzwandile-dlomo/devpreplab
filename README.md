@@ -124,4 +124,4 @@ make seed-problems         # Seed database with problems
 
 ## Authentication
 
-DevPrepLab uses email-only accounts (no separate usernames). Authentication is done via JWT using the registered email address and password.
+DevPrepLab uses email-only accounts. Authentication is handled via JWT using the registered email address and password. For now, emails are not verified and no email notifications are sent, as this setup is intended for development and internal project use only.
